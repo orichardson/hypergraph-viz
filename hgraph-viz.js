@@ -1,7 +1,7 @@
 //A web-page opened via the file:// protocol cannot use import / export.
 // import defaultExport from '/link-modified.js';
 
-console.log("pdgvz.js");
+console.log("hgraph-viz.js");
 hypergraph = {
 	nodes : ['A', 'B', 'C', 'D'],
 	hedges : {
@@ -24,14 +24,14 @@ $(function() {
 		canvas.width = window.innerWidth;
 		canvas.height = window.innerHeight;
 		if(typeof simulation != "undefined") {
-			for(let pudgha of pdgs) {
-			// pdg.sim.force('center').x(canvas.width/2);
-			// pdg.sim.force('center').y(canvas.height/2);
-				pudgha.sim.alpha(1).restart();
-				pudgha.tick();
+			for(let hg of hgs) {
+			// hg.sim.force('center').x(canvas.width/2);
+			// hg.sim.force('center').y(canvas.height/2);
+				hg.sim.alpha(1).restart();
+				hg.tick();
 			}
 		}
-		// pdg.tick();
+		// hg.tick();
 	}
 	window.addEventListener('resize', resizeCanvas, false);
 	resizeCanvas()
@@ -48,12 +48,12 @@ $(function() {
 	
 	let mouse = { w : 0, h: 0 };
 	
-	pdg = PDGView(hypergraph, mouse);
-	pdgs =  [ pdg ];
+	hg = HGView(hypergraph, mouse);
+	hgs =  [ hg ];
 	
 		
 	$('#save-button').click(function(e){
-		download_JSON(pdg.state, 'hypergraph');
+		download_JSON(hg.state, 'hypergraph');
 	});
 	$('#load-button').click(function(e){
 		$('#fileupload').click();
@@ -65,7 +65,7 @@ $(function() {
 			// console.log(e);
 			let ob = JSON.parse(e.target.result);
 			// load_hypergraph(ob);
-			pdg.load(ob);
+			hg.load(ob);
 			// console.log("LOADED HYPERGRAPH:", ob);
 		};
 		reader.readAsText(evt.target.files[0]);
@@ -89,14 +89,14 @@ $(function() {
 		context.lineCap = 'round';
 		// context.setLineDash([]);
 		
-		for( let M of pdgs ) {
+		for( let M of hgs ) {
 			M.draw(context);
 		}
 
 		
 		if(temp_link) {
 			let midpt = (temp_link.x == undefined) ? undefined : vec2(temp_link);
-			let tlpath = pdg.compute_link_shape(temp_link.srcs, temp_link.tgts, midpt);
+			let tlpath = hg.compute_link_shape(temp_link.srcs, temp_link.tgts, midpt);
 			
 			context.lineWidth = 3;
 			context.strokeStyle = "rgba(255,255,255,0.4)";
@@ -124,7 +124,7 @@ $(function() {
 		
 		
 	}
-	pdg.repaint_via(redraw);
+	hg.repaint_via(redraw);
 	
 	d3.select(canvas).call(d3.drag()
 			.container(canvas)
@@ -136,9 +136,9 @@ $(function() {
 					if (mode == 'draw' && temp_link) return undefined;
 					// else {
 
-					let o = pdg.pickN(event);
+					let o = hg.pickN(event);
 					if(o) return o;
-					let ln = pdg.pickL(event,6,true);
+					let ln = hg.pickL(event,6,true);
 					if(ln) return ln;
 
 					//  if in draw mode, 
@@ -159,20 +159,20 @@ $(function() {
 		if (action.type == 'box-select') {
 			action.start = vec2(event);
 			action.end = vec2(event);
-			pdg.tick();
+			hg.tick();
 			console.log("DRAGSTART", action)
 		}
 		else if(mode == 'move') {
 			// if there are no other drag handlers currently firing.
 			// apparently useful mostly in multi-touch scenarios.
-			if (!event.active) pdg.sim.alphaTarget(0.5).restart();
+			if (!event.active) hg.sim.alphaTarget(0.5).restart();
 			if(event.subject.link)  {// it's a link
 				event.subject.initial_offset = event.subject.offset;
 			} else {  // if it's a node
 				event.subject.fx = event.subject.x;
 				event.subject.fy = event.subject.y;
 				event.subject.anchored = false;
-				pdg.align_node_dom();
+				hg.align_node_dom();
 			}
 		}
 		else if (mode == 'draw') {
@@ -187,14 +187,14 @@ $(function() {
 			} else { // drag.subject is a node.
 				temp_link = linkobject(['<TEMPORARY>', [[event.subject.id], ["<MOUSE>"]]]);
 			}
-			pdg.tick();
+			hg.tick();
 		}
 	}
 	function dragged(event) {
 		// console.log(event);
 		if (action.type == 'box-select') {
 			action.end = vec2(event);
-			pdg.tick();
+			hg.tick();
 		}
 		else if(mode == 'move') {
 			if(event.subject.link)  { // if it's an edge
@@ -208,7 +208,7 @@ $(function() {
 		} 
 		else if (mode == 'draw') {
 			// mouse_pt = vec2(event);
-			// pdg.lookup["<MOUSE>"] = {x: event.sourceEvent.x,
+			// hg.lookup["<MOUSE>"] = {x: event.sourceEvent.x,
 			// 				y: event.sourceEvent.y,
 			// 				w:1,h:1
 			mouse.x = event.sourceEvent.x;
@@ -216,7 +216,7 @@ $(function() {
 							// setting to negative 9 means the arrow is only shortened 1 pixel.
 							// w: -9, h: -9
 						// };
-			// pdg.tick();
+			// hg.tick();
 			redraw();
 		}
 	}
@@ -224,7 +224,7 @@ $(function() {
 		if(action.type == 'box-select') {
 			action.end = vec2(event);
 			action.shift = event.sourceEvent.shiftKey;
-			pdg.handle(action)
+			hg.handle(action)
 			
 			select_rect_start = null;
 			select_rect_end = null;
@@ -233,8 +233,8 @@ $(function() {
 		}
 		if(mode == 'move') {
 			if (!event.active){
-				// pdg.sim.alpha(1.2).alphaTarget(0).restart();	
-				pdg.sim.alphaTarget(0);
+				// hg.sim.alpha(1.2).alphaTarget(0).restart();	
+				hg.sim.alphaTarget(0);
 			} 
 			
 			if(event.subject.link)  { // if it's an edge
@@ -245,11 +245,11 @@ $(function() {
 			} else {// it's a node	
 				if(event.sourceEvent.shiftKey){
 					event.subject.anchored = true;
-					pdg.align_node_dom();
+					hg.align_node_dom();
 				}
 
 				if(!event.subject.expanded 
-					// && pdg.sim_mode === "all"
+					// && hg.sim_mode === "all"
 					&& !event.subject.anchored
 					) {
 					event.subject.fx = null;
@@ -258,7 +258,7 @@ $(function() {
 			}
 		}
 		else if (mode == 'draw' && temp_link) {
-			pdg.handle({
+			hg.handle({
 				type : "edge-stroke",
 				temp_link : temp_link,
 				endpt: {x : event.sourceEvent.x, y : event.sourceEvent.y},
@@ -273,19 +273,19 @@ $(function() {
 	}
 	
 	canvas.addEventListener("dblclick", function(e) {
-		let obj = pdg.pickN(e), link = pdg.pickL(e);
+		let obj = hg.pickN(e), link = hg.pickL(e);
 		if(obj) { // rename selected node
 			// EXPANDING CODE
 			if(!obj.expanded) {
-				pdg.sim.stop();
+				hg.sim.stop();
 				obj.expanded = true;
 				obj.old_wh = [obj.w, obj.h];
 				// [obj.w, obj.h] = [550,250];
 				[obj.w, obj.h] = [200,150];
 				[obj.fx, obj.fy] = [obj.x, obj.y];
-				pdg.sim.alpha(2).alphaTarget(0).restart();
+				hg.sim.alpha(2).alphaTarget(0).restart();
 			
-				for(let ln of pdg.linknodes) {
+				for(let ln of hg.linknodes) {
 					// if l.srcs or l.tgts includes n,
 					// then set strength to zero?
 					// set distance?
@@ -296,15 +296,15 @@ $(function() {
 				[obj.w, obj.h] = obj.old_wh ? obj.old_wh : [initw,inith];
 				delete obj.fx
 				delete obj.fy;
-				pdg.sim.alpha(2).alphaTarget(0).restart();
+				hg.sim.alpha(2).alphaTarget(0).restart();
 			}
-			pdg.align_node_dom();
+			hg.align_node_dom();
 			
 			
 			//RENAMING CODE
-			// let name = promptForName("Enter New Variable Name", obj.id, pdg.all_node_ids);
+			// let name = promptForName("Enter New Variable Name", obj.id, hg.all_node_ids);
 			// if(!name) return;
-			// pdg.rename_node(obj.id, name);
+			// hg.rename_node(obj.id, name);
 		} else if(link) { // rename selected cpd
 			
 			
@@ -312,19 +312,19 @@ $(function() {
 			setTimeout(function() {
 				let name = promptForName("Enter A Variable Name",
 					// fresh_node_name(), 
-					pdg.fresh_node_name(),
-					pdg.all_node_ids);
+					hg.fresh_node_name(),
+					hg.all_node_ids);
 				if(!name) return;
 				
-				newtgt = pdg.new_node(name, e.x, e.y);
+				newtgt = hg.new_node(name, e.x, e.y);
 				if(temp_link) {
 					// todo: fold out this functionality, shared with click below.
 					new_tgts = temp_link.tgts.slice(1);
 					new_tgts.push(newtgt.id);
-					pdg.new_link(temp_link.srcs, new_tgts, fresh_label(), [temp_link.x, temp_link.y]);
+					hg.new_link(temp_link.srcs, new_tgts, fresh_label(), [temp_link.x, temp_link.y]);
 					temp_link = null;
 				}
-				pdg.tick();
+				hg.tick();
 			}, 10);
 		}		
 		// if(e.ctrlKey || e.metaKey) {
@@ -334,7 +334,7 @@ $(function() {
 		// ADD NEW NODE
 		// if(e.ctrlKey || e.metaKey) {
 		if( temp_link ) {
-			// let newtgt = pdg.pickN(e);
+			// let newtgt = hg.pickN(e);
 			// if(!newtgt && mode == 'draw') {
 			// 	newtgt = new_node(fresh_node_name(), e.x, e.y);
 			// }
@@ -350,7 +350,7 @@ $(function() {
 			// 	}
 			// }
 			// console.log("IN CLICK W/ TEMP LINK")
-			pdg.handle({
+			hg.handle({
 				type : "edge-stroke",
 				temp_link : temp_link,
 				endpt: {x : event.x, y : event.y},
@@ -364,7 +364,7 @@ $(function() {
 			
 			action.targets.forEach(n => {
 				[n.x, n.y] = addv(n.old_pos, mouse_end, scale(action.mouse_start, -1)); 
-				if(n.anchored || (pdg.sim_mode === "linknodes only" && !n.link)) {
+				if(n.anchored || (hg.sim_mode === "linknodes only" && !n.link)) {
 					[n.fx, n.fy] = [n.x,n.y];
 				}
 				delete n.old_pos;
@@ -385,7 +385,7 @@ $(function() {
 					ln.sep[n] = cur_sep;
 			}
 			
-			for(let ln of pdg.linknodes) {
+			for(let ln of hg.linknodes) {
 				if(action.targets.includes(ln)) {
 					ln.sep = {}
 					// ## TEMPORARILY COMMENTED OUT; KEEP SEPS SAME
@@ -396,17 +396,17 @@ $(function() {
 					// 	adjust_seps(ln, n, ln.link.tgts.length, ln.link.srcs.includes(n))
 				}
 			}
-			// pdg.sim.force("bipartite").links(mk_bipartite_links(linknodes));
-			pdg.update_simulation();
-			// pdg.update_simulation();
+			// hg.sim.force("bipartite").links(mk_bipartite_links(linknodes));
+			hg.update_simulation();
+			// hg.update_simulation();
 			// for(let n of action.targets) {
 			// 
 			// }
 			action = {};
-			pdg.restyle_nodes();
+			hg.restyle_nodes();
 			
 		} else if(mode == 'move') { // selection in manipulate mode
-			pdg.point_select(e, !e.shiftKey);
+			hg.point_select(e, !e.shiftKey);
 		}
 		// else if(mode == 'select'){
 		// 	let link = pickL(e);
@@ -433,10 +433,10 @@ $(function() {
 				});
 			}
 			action = {};
-			pdg.tick();
+			hg.tick();
 		}
 		else if (event.key == 'a') {
-			pdg.select_all();
+			hg.select_all();
 		}
 		else if (event.key.toLowerCase() == 'b') {
 			// $("#drag-mode-toolbar button[data-mode='select']").click();
@@ -451,7 +451,7 @@ $(function() {
 		else if (event.key.toLowerCase() == 't') {
 			// start creating arrows.
 			// 1. Create new arrow from selection at tail
-			src = pdg.selected_node_ids
+			src = hg.selected_node_ids
 			// src = nodes.filter( n => n.selected ).map( n => n.id );
 			// lab = fresh_label();
 			// temp_link = new_link(src, ['<MOUSE>'], "<TEMPORARY>");
@@ -465,20 +465,20 @@ $(function() {
 		}
 		else if (event.key == ' ') {
 			event.preventDefault();
-			// pdg.sim.alphaTarget(0.05).restart();
+			// hg.sim.alphaTarget(0.05).restart();
 			
 			// if we're only simulating linknodes, then
 			// we still want to un-fix selected nodes on space to reorganize them.
 			action = {
 				type : "local-simulation",
-				targets : pdg.nodes.filter(n => n.selected)
+				targets : hg.nodes.filter(n => n.selected)
 			};
-			if(pdg.sim_mode === "linknodes only") { 
+			if(hg.sim_mode === "linknodes only") { 
 				action.targets.forEach(n => {delete n.fx; delete n.fy;})
 			}
 			
-			pdg.sim.alphaTarget(1.5).restart();
-			// pdg.sim.alpha(2).alphaTarget(0).restart();
+			hg.sim.alphaTarget(1.5).restart();
+			// hg.sim.alpha(2).alphaTarget(0).restart();
 			
 			if(mode == 'move') {
 			}
@@ -487,7 +487,7 @@ $(function() {
 			}
 		}
 		else if (event.key.toLowerCase() == 'x') {
-				pdg.delete_selection();
+				hg.delete_selection();
 		}
 		else if (event.key == 'd') {
 			set_mode("draw");
@@ -496,14 +496,14 @@ $(function() {
 			set_mode("move");
 		}
 		else if (event.key == "g") {
-			// pdg.sim.stop();
-			pdg.sim.stop();
+			// hg.sim.stop();
+			hg.sim.stop();
 			// move selection with mouse
 			
 			action = {
 				type : "move", 
 				mouse_start : vec2(mouse),
-				targets: pdg.nodes.filter(n => n.selected).concat(pdg.linknodes.filter(ln => ln.link.selected)) 
+				targets: hg.nodes.filter(n => n.selected).concat(hg.linknodes.filter(ln => ln.link.selected)) 
 			}
 			
 			action.targets.forEach( n => {
@@ -517,8 +517,8 @@ $(function() {
 	});
 	window.addEventListener("keyup", function(event){
 		if(action.type === "local-simulation" && event.key == ' ') {
-			pdg.sim.alphaTarget(0);
-			if(pdg.sim_mode === "linknodes only") { 
+			hg.sim.alphaTarget(0);
+			if(hg.sim_mode === "linknodes only") { 
 				action.targets.forEach( n => { [n.fx,n.fy] = [n.x,n.y]; });
 			}
 		}		
@@ -532,36 +532,36 @@ $(function() {
 		// lover.lw = (lover.lw + sgn(e.wheelDelta) );
 		
 		
-		pdg.tick();
+		hg.tick();
 		// console.log(lover);
 	});
 	window.addEventListener("mousemove", function(e) {
 		// mouse_pt = [e.x, e.y];
 		// lookup["<MOUSE>"] = {x : e.x, y: e.y, w:0,h:0};
 		// console.log("HI");
-		// pdg.lookup["<MOUSE>"] = {x : e.x, y: e.y, w:0,h:0};
+		// hg.lookup["<MOUSE>"] = {x : e.x, y: e.y, w:0,h:0};
 		
 		mouse.x = e.x;
 		mouse.y = e.y;
 		
 		if(temp_link) redraw();
 		
-		if(popped_up_link && !pdg.picksL(e, popped_up_link, 10)) {
+		if(popped_up_link && !hg.picksL(e, popped_up_link, 10)) {
 			delete popped_up_link.lw;
 			popped_up_link = null;
-			pdg.tick();
+			hg.tick();
 		}
 		
 		if(popup_process) clearTimeout(popup_process);
 	
 		if( !popped_up_link) {
 			popup_process = setTimeout(function() {
-				let l = pdg.pickL(e, 10);
+				let l = hg.pickL(e, 10);
 				popped_up_link = l;
 
 				if(l) {
 					l.lw = 5;
-					pdg.tick();
+					hg.tick();
 				}
 			}, 100);
 		}
@@ -572,9 +572,9 @@ $(function() {
 				[n.x, n.y] = addv(n.old_pos, vec2(e), scale(action.mouse_start, -1)); 
 			});
 			// console.log(action.targets);
-			pdg.restyle_nodes();
+			hg.restyle_nodes();
 			// midpoint_aligning_force(1);
-			pdg.tick();
+			hg.tick();
 			// TODO move selection, like ondrag below
 		}
 	})

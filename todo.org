@@ -1,0 +1,91 @@
+* Hypergraph Visualization Tasks
+** DONE Refactor drawing modes
+:LOGBOOK:
+- State "DONE"       from "STRT"       [2022-05-26 Thu 15:01]
+:END:
+Remove "Select" as a mode.
+Make it, as well as the "t" key, special submodes, that only apply for
+a single operation.
+
+** STRT Actions + Keystroke Display
+Make such "Special Operations" visually clear and automatically display which ones are available. Important for ease of use
+
+** Visual [2/9]
+*** DONE draw labels
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2022-05-23 Mon 16:02]
+:END:
+*** KILL change \delta (edge offset) + length parameters of hyperedges
+:LOGBOOK:
+- State "KILL"       from "TODO"       [2022-05-23 Mon 16:02]
+:END:
+*** TODO Possibility of multiple nodes per link.
+ - Make longer edges this way w / control of way points, like a mesh or curve in blender.
+ -
+*** TODO make self-edges prettier
+One possibility: multiple link nodes.
+*** TODO double-headed arrows
+Idea: Ctrl + click
+*** TODO circle-tailed arrows
+*** TODO Alter node sizes cleanly, as text is modified.
+*** TODO MathJax in Nodes
+
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2022-06-02 Thu 13:33]
+:END:
+*** TODO When selected: drag entire selection in manipulate mode
+
+** Structure Editing
+*** STRT Moving.
+Blender style
+*** TODO Scaling.
+Issue: distances are for pairs of connected nodes / links.
+So how do you scale things separately?
+*** TODO Duplicate Selection w/"D" or ctrl + drag
+*** TODO Copy, Cut, Paste,
+*** TODO Rename labels
+
+** Physics + Layout
+*** TODO Allow linknodes to pass through nodes that they are connected to, in transition to a more stable state.
+:LOGBOOK:
+- State "DONE"       from "TODO"       [2022-06-02 Thu 13:32]
+:END:
+*** TODO Re-layout (tunneling + non-local force search)
+*** TODO Stretchiness that adapts to tension
+*** TODO Simulation Less Baked-In; More Permanent Node placements
+**** Idea: define a "view" that includes PDG node placements.
+ > But what's a nice way to select views?
+    + names + search :: state is not very visible.
+    + scrolling :: even less so
+    + buttons on bottom :: cluttered.
+Seems to be too much state.
+
+
+
+**** Idea: A Selector for {full simulation, }
+**** Idea: A button "run simulation on (all but) selected elements".
+**** Idea: "Float" property. Simulation is run on those nodes with float property.
+Nodes can be anchored with click.
+
+** Edge Focus
+*** TODO CPD editor
+
+** Node Focus
+*** STRT Value Editor
+*** TODO Associate list to each node
+*** TODO Edit Name.
+*** See: Multi-PDG below
+
+** Workflow
+*** TODO UNDO
+*** TODO Camera
+
+*** TODO snap
+*** TODO Flip through folder of PDG structures, with annotations
+*** TODO Drag to select without "b" key, so you can just use mouse.
+*** MAYBE Export to something matplotlib can display.
+
+** Multi-PDG [0/3]
+*** TODO Nested Borders (Compress full PDGs as nodes + folding)
+*** TODO Split and Merge functionality
+*** TODO Move entire PDGs around the screen

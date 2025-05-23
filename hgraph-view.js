@@ -31,12 +31,11 @@ function linkobject([label, [src,tgt]], i) {
 	}
 }
 
-function PDGView(hypergraph, mousept) {
-		//data from pdgviz.js
+function HGView(hypergraph, mousept) {
+	/*  Need to send in a reference to the current mouse position, as it will be necessary to implement view interface. This file does not directly have access to the right listeners, and this data is already being saved and listened to. */
 	let nodes = [];
 	let links = [];
 	let linknodes = [];
-	// let lookup = [];
 	let lookup = { "<MOUSE>" :  mousept };
 	
 	// let lookup = {
@@ -59,7 +58,7 @@ function PDGView(hypergraph, mousept) {
 	let simulation = undefined
 	// 
 	svgg = d3.select("#svg").append("g")
-		.classed("PDG", true)
+		.classed("hypergraph", true)
 	
 	if(hypergraph !== undefined) {
 		load(hypergraph)
@@ -81,7 +80,9 @@ function PDGView(hypergraph, mousept) {
 		
 		// load nodes
 		nodes = hypergraph.nodes.map( function(varname) {
-			let ob = {id: varname, values: [0,1],
+			let ob = {id: varname, 
+				plaque: varname,
+				// values: [0,1],
 				w : initw, h: inith, display: true};
 			lookup[varname] = ob;
 			return ob;
@@ -154,7 +155,7 @@ function PDGView(hypergraph, mousept) {
 			hedges : hedges,
 			viz : {
 				nodes : Object.fromEntries(nodes.map(
-						n => [n.id, cloneAndPluck(n, ["x", "y", "w", "h", "selected", "expanded"])]
+						n => [n.id, cloneAndPluck(n, ["x", "y", "w", "h", "plaque", "selected", "expanded"])]
 						// n => [n.id, n]
 					)),
 				linknodes : linknodes.map(
@@ -581,8 +582,10 @@ function PDGView(hypergraph, mousept) {
 	function new_node(vname, x,y) {
 		let ob = {
 			id: vname, 
+			plaque : vname,
 			x: x, y: y, vx: 0, vy:0,
-			w : initw, h : inith,  display: true};
+			w : initw, h : inith,  display: true
+		};
 		nodes.push(ob);
 		lookup[vname] = ob;
 		align_node_dom();
@@ -607,7 +610,7 @@ function PDGView(hypergraph, mousept) {
 			.attr('width', n => n.w).attr('x', n => -n.w/2)
 			.attr('height', n => n.h).attr('y', n => -n.h/2)
 			.attr('rx', 15);
-		nodedata.selectAll("text").text(n => n.id);
+		nodedata.selectAll("text").text(n => n.plaque);
 		nodedata.filter( n => ! n.display).attr('display', 'none');
 		
 		// if (typeof simulation != 'undefined') {
@@ -806,7 +809,7 @@ function PDGView(hypergraph, mousept) {
 	function stroke(temp_link, endpt) {
 		let newtgts = [], newsrcs = [];
 		
-		let pickobj = pdg.pickN(endpt);
+		let pickobj = pickN(endpt);
 		if( pickobj ) {
 			// disable self-edges (for now) --- they're very annoying and easy to make by accident
 			if((temp_link.srcs.length == 1) && (temp_link.srcs[0] == pickobj.id)) {
@@ -840,7 +843,7 @@ function PDGView(hypergraph, mousept) {
 				// just make the new node.
 				// console.log(event, temp_link, action);
 				if(temp_link.srcs.length == 0 && mag(subv(vec2(endpt), vec2(temp_link))) <= 20) {
-					pdg.tick();	return;
+					ontick();	return;
 				}
 			}
 		}
@@ -859,7 +862,7 @@ function PDGView(hypergraph, mousept) {
 		new_link(newsrcs, newtgts, fresh_label(), [temp_link.x, temp_link.y]);
 		simulation.alpha(0.5).alphaTarget(0).restart();
 		
-		pdg.tick();	
+		ontick();	
 	}
 	function rename_node(old_name, new_name) {
 		obj = lookup[old_name];
