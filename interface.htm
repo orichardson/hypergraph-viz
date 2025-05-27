@@ -7,8 +7,8 @@
 		<!-- KaTeX -->
 		<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.6/dist/katex.min.css" integrity="sha384-ZPe7yZ91iWxYumsBEOn7ieg8q/o+qh/hQpSaPow8T6BwALcXSCS6C6fSRPIAnTQs" crossorigin="anonymous"> -->
 		<!--mathjax 3-->
-		<!-- <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">	</script> -->
-		<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+		<script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">	</script>
+		<!-- <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script> -->
 
 
 		<!-- The loading of KaTeX is deferred to speed up page rendering -->
@@ -43,6 +43,9 @@
 					<button type="button" class="btn btn-secondary">6</button>
 					<button type="button" class="btn btn-secondary">7</button>
 				</div>-->
+				<div class="btn-group" id="action-panel">					
+				</div>
+				<!-- FILE IO BUTTONS -->
 				<div class="btn-group" role="group" aria-label="Third group">
 					<!-- <button type="button" class="btn btn-outline-dark">Help</button> -->
 					<button type="button" class="btn btn-outline-dark" id="save-button">Save</button>
@@ -51,6 +54,14 @@
 				</div>
 			</div> 
 		</div>
+		
+		<dialog id="node-properties">
+			<form>
+				<h3>Node Properties</h3>
+				<div id="node-properties-form-content">
+				</div>
+			</form>
+		</dialog>
 		
 	
 		<canvas id="canvas" width="100%" height="100%" class="fullsize z1"></canvas>
@@ -64,6 +75,7 @@
 		<script src="link-modified.js"></script> 
 		<script src="collide-modified.js"></script> 
 		<script src="hgraph-view.js"></script> 
+		<script src="actions.js"></script> 
 		<script src="hgraph-viz.js"></script> <!-- most of it -->
 	</body>
 </html>

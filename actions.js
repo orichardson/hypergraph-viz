@@ -10,6 +10,7 @@ STATIC actions; based on selection, do somethign.
  - togle display modes and properties
  - loosen / tighten arcs
  - rename 
+ - rigidify structures
  
 global actions (special case of above):
  - load / save
@@ -33,13 +34,13 @@ function pin(selection) {
 
 
 ACTIONS = [
+	// anchor nodes or linkednodes
 	{ name: 'pin',
-		available: function(ctx) {
-			return true;
-		},
+		available: () => true,
 		exec : pin,
 	},
 	{	name : 'unpin',
-		
+		available: () => true,
+		exec: noop
 	}
 ];

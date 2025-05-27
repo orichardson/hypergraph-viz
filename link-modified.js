@@ -4,10 +4,12 @@ function jiggle(random) {
 }
 
 function custom_link_force(blinks) {
-    var id = l => l.indx,
-        strength = (l) =>  1 / Math.min(count[l.source.index], count[l.target.index]),
+    var id = l => l.index,
+        strength = (l) =>  2 / Math.min(count[l.source.index], count[l.target.index]),
         strengths,
         distance = (l) => [30,30],
+        // distance = (l) => [80,80],
+        // distance = (l) => [l.separation,l.separation+10],
         min_dists,
         max_dists,
         bnodes,
@@ -30,6 +32,7 @@ function custom_link_force(blinks) {
     function force(alpha) {
         
         // console.log(distances);
+        // to be used later
         var dx,dy,source,target,bl, a,b, bi, max_dist, min_dist, r;
 
         for (var k = 0; k < iterations; ++k) {
@@ -56,14 +59,10 @@ function custom_link_force(blinks) {
                         //     "| y? " +( Math.abs(b[1] - target.y) < target.h/2))
                         // dx = jiggl(), dy = jiggl();
                         continue;
-                        // dx += 
                     }
     
                 } else {
-                    // dx = target.x + target.vx - source.x - source.vx 
-                    //     || jiggl();
-                    // dy = target.y + target.vy - source.y - source.vy 
-                    //     || jiggl();
+                    // recall that vvec2(n) gives [n.x+n.dx, n.y+n.dy]
                     [dx, dy] = subv(vvec2(target), vvec2(source));
                 }
                 r = Math.sqrt(dx * dx + dy * dy); 
@@ -71,9 +70,7 @@ function custom_link_force(blinks) {
                 min_dist = bl.min_dist || min_dists[i];
                 max_dist = bl.max_dist || max_dists[i];
 
-                
-                // console.log(min_dist,max_dist, dx,dy,r);
-                // ... but what if 
+                                // ... but what if 
                 r = (r - clamp(r, min_dist, max_dist)) / r * alpha * strengths[i];
                 // r = (r - min_dist) / r * alpha * strengths[i];
                 // console.log(min_dist,max_dist, dx,dy,r);

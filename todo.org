@@ -10,7 +10,7 @@ a single operation.
 ** STRT Actions + Keystroke Display
 Make such "Special Operations" visually clear and automatically display which ones are available. Important for ease of use
 
-** Visual [2/9]
+** Visual [3/9]
 *** DONE draw labels
 :LOGBOOK:
 - State "DONE"       from "TODO"       [2022-05-23 Mon 16:02]
@@ -28,9 +28,10 @@ One possibility: multiple link nodes.
 Idea: Ctrl + click
 *** TODO circle-tailed arrows
 *** TODO Alter node sizes cleanly, as text is modified.
-*** TODO MathJax in Nodes
+*** DONE MathJax in Nodes
 
 :LOGBOOK:
+- State "DONE"       from "TODO"       [2025-05-27 Tue 19:41]
 - State "DONE"       from "TODO"       [2022-06-02 Thu 13:33]
 :END:
 *** TODO When selected: drag entire selection in manipulate mode

@@ -73,26 +73,25 @@
 	fill: black;
 	/* stroke-width: 5px; */
 }
-.linknode text.bg {
+.linknode > text.bg {
 	stroke-width: 6px;
-}
-
-.linknode.selected text {
-	/* font-size: 30px; */
+	stroke: var(--stroke-color);
 }
 .linknode:not(.selected) text {
 	/* font-size: 5px;  */
 	display: none;
 }
 
+.linknode {
+	--stroke-color: rgba(230,230,230,0.5);
+}
+.linknode .selected {
+	--stroke-color: rgba(230,150,50,0.5);
+}
 
-.linknode.selected > text.bg {
-	stroke: rgba(230,150,50,0.5);
-}
-.linknode:not(.selected) > text.bg {
-	stroke: rgba(230,230,230,0.5);
-}
-.node:not(.selected):not(.expanded) > .nodeshape {
+
+/* .node:not(.selected):not(.expanded) > .nodeshape { */
+.node > .nodeshape {
 	fill : rgba(200,200,200, 0.3);
 	stroke-width: 1px;
 	stroke: #888;
@@ -107,7 +106,9 @@
 
 .node.anchored > .nodeshape {
 	/* stroke-dasharray : "4 1"; */
-	fill: rgba(100,20,20) !important;
+	stroke-width: 5px;
+	stroke: #888;
+	/* fill: rgba(100,20,20) !important; */
 }
 
 

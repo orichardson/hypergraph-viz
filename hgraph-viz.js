@@ -13,7 +13,16 @@ hypergraph = {
 };
 
 
+async function renderMathToSVG(latexString) {
+		// written by chatgpt
+  const node = await MathJax.tex2svgPromise(latexString, { display: false });
+  const svg = node.querySelector('svg');
+  svg.removeAttribute('style');  // Remove inline styles that interfere with D3
+  return svg;
+}
 
+
+// Main code 
 $(function() {
 	// resize to full screen
 	let canvas = document.getElementById("canvas"),
@@ -92,7 +101,6 @@ $(function() {
 		for( let M of hgs ) {
 			M.draw(context);
 		}
-
 		
 		if(temp_link) {
 			let midpt = (temp_link.x == undefined) ? undefined : vec2(temp_link);
@@ -126,6 +134,20 @@ $(function() {
 	}
 	hg.repaint_via(redraw);
 	
+	// in actions.js, a list ACTIONS is defined; start by adding buttons
+	for( let a of ACTIONS) {
+		b = $('<button class="btn action--'+a.name+'" />'+a.name+'</button>');
+		b.on('click', function(){ console.log("PRESS!", a, a.name); a.exec(); });
+		$('#action-panel').append(b);
+	}
+	
+	// currently unusued; maybe delete?
+	function action_panel_update() {
+		$('#action-panel button').each(function() {
+			// TODO: enable / disable button
+		});
+	}
+	
 	d3.select(canvas).call(d3.drag()
 			.container(canvas)
 			.clickDistance(10)
@@ -147,6 +169,11 @@ $(function() {
 						let lo = {link: linkobject(['templink', [[],[]]]), x: event.x, y: event.y};
 						return lo;
 					}
+					
+					if( mode == 'move' ) {
+						action = { type : 'box-select'};
+						return true;
+					}
 					// }
 				})
 			.on("start", dragstarted)
@@ -160,20 +187,6 @@ $(function() {
 			action.start = vec2(event);
 			action.end = vec2(event);
 			hg.tick();
-			console.log("DRAGSTART", action)
-		}
-		else if(mode == 'move') {
-			// if there are no other drag handlers currently firing.
-			// apparently useful mostly in multi-touch scenarios.
-			if (!event.active) hg.sim.alphaTarget(0.5).restart();
-			if(event.subject.link)  {// it's a link
-				event.subject.initial_offset = event.subject.offset;
-			} else {  // if it's a node
-				event.subject.fx = event.subject.x;
-				event.subject.fy = event.subject.y;
-				event.subject.anchored = false;
-				hg.align_node_dom();
-			}
 		}
 		else if (mode == 'draw') {
 			if(event.subject.link)  { // if it's an edge
@@ -189,6 +202,20 @@ $(function() {
 			}
 			hg.tick();
 		}
+		else if(mode == 'move') {
+			// if there are no other drag handlers currently firing.
+			// apparently useful mostly in multi-touch scenarios.
+			if (!event.active) hg.sim.alphaTarget(0.5).restart();
+			if(event.subject.link)  {// it's a link
+				event.subject.initial_offset = event.subject.offset;
+			} else {  // if it's a node
+				event.subject.fx = event.subject.x;
+				event.subject.fy = event.subject.y;
+				// event.subject.anchored = false;
+				hg.align_node_dom();
+			}
+		}
+		
 	}
 	function dragged(event) {
 		// console.log(event);
@@ -231,7 +258,16 @@ $(function() {
 			action = {};
 			redraw();
 		}
-		if(mode == 'move') {
+		else if (mode == 'draw' && temp_link) {
+			hg.handle({
+				type : "edge-stroke",
+				temp_link : temp_link,
+				endpt: {x : event.sourceEvent.x, y : event.sourceEvent.y},
+				// source_link : event.subject.link
+			});
+			temp_link = null;
+		}
+		else if(mode == 'move') {
 			if (!event.active){
 				// hg.sim.alpha(1.2).alphaTarget(0).restart();	
 				hg.sim.alphaTarget(0);
@@ -257,15 +293,6 @@ $(function() {
 				}
 			}
 		}
-		else if (mode == 'draw' && temp_link) {
-			hg.handle({
-				type : "edge-stroke",
-				temp_link : temp_link,
-				endpt: {x : event.sourceEvent.x, y : event.sourceEvent.y},
-				// source_link : event.subject.link
-			});
-			temp_link = null;
-		}
 	}
 	
 	function set_mode(mode) {
@@ -275,7 +302,8 @@ $(function() {
 	canvas.addEventListener("dblclick", function(e) {
 		let obj = hg.pickN(e), link = hg.pickL(e);
 		if(obj) { // rename selected node
-			// EXPANDING CODE
+			// EXPANDING CODE 
+			/*
 			if(!obj.expanded) {
 				hg.sim.stop();
 				obj.expanded = true;
@@ -298,13 +326,18 @@ $(function() {
 				delete obj.fy;
 				hg.sim.alpha(2).alphaTarget(0).restart();
 			}
-			hg.align_node_dom();
+			hg.align_node_dom();*/
 			
 			
-			//RENAMING CODE
-			// let name = promptForName("Enter New Variable Name", obj.id, hg.all_node_ids);
-			// if(!name) return;
-			// hg.rename_node(obj.id, name);
+			//RENAMING NODE CODE
+			console.log(obj);
+			let name = promptForName("Enter New Variable Name", obj.id, hg.all_node_ids);
+			if(!name) return;
+			hg.rename_node(obj.id, name);
+			// hg.nodes 
+			
+			document.getElementById('node-properties').showModal();
+			
 		} else if(link) { // rename selected cpd
 			
 			
@@ -353,7 +386,7 @@ $(function() {
 			hg.handle({
 				type : "edge-stroke",
 				temp_link : temp_link,
-				endpt: {x : event.x, y : event.y},
+				endpt: {x : e.x, y : e.y},
 				// source_link : event.subject.link
 			});
 			temp_link = null;

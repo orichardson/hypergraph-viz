@@ -1,5 +1,6 @@
 const initw = 50, inith = 40;
-// const STRETCH_FACTOR = 1
+// const STRETCH_FACTOR = 0.8
+// const STRETCH_FACTOR = 1.0
 const STRETCH_FACTOR = 1.2;
 // const STRETCH_FACTOR = 3;
 
@@ -32,6 +33,11 @@ function linkobject([label, [src,tgt]], i) {
 }
 
 function HGView(hypergraph, mousept) {
+	let self = {
+		default_node_symbol : 'X',
+		default_arc_symbol : 'a'
+	};
+	
 	/*  Need to send in a reference to the current mouse position, as it will be necessary to implement view interface. This file does not directly have access to the right listeners, and this data is already being saved and listened to. */
 	let nodes = [];
 	let links = [];
@@ -444,6 +450,7 @@ function HGView(hypergraph, mousept) {
 	}
 	function midpoint_aligning_force(alpha) {
 		// let strength = 0.3 // 0.35
+		// let strength = 0;
 		let strength = 0.2 // 0.35
 		for (let ln of linknodes) {
 			let l = ln.link;
@@ -485,14 +492,19 @@ function HGView(hypergraph, mousept) {
 					// isloop: l.tgts.includes(s)
 				});
 			}
-			// delta = l.srcs.length == 0 ?  -1 : 0;
+			
+			// this is a slightly verbose way to essentially double the lengths of unconditional arcs.d
+			var sep = undefined;
+			if (l.srcs.length == 0)
+			 	sep = default_separation(l.tgts.length,false) * 1.8;
+				
 			for( let t of l.tgts) {
 				bipartite_links.push({
 					source: lname, target: t, 
 					n : t, ln : ln,
 					separation : 
 						ln.sep && ln.sep[t] ? ln.sep[t] : 
-						default_separation(l.tgts.length, l.srcs.includes(t)),
+						(sep || default_separation(l.tgts.length, l.srcs.includes(t))),
 					// nsibls: l.tgts.length, 
 					// isloop: l.srcs.includes(t) 
 				});
@@ -500,6 +512,7 @@ function HGView(hypergraph, mousept) {
 		}
 		return bipartite_links;
 	}
+	
 	function reinitialize_node_positions() {
 		for (let node of nodes) {
 			node.x = node.x * 10.8 + canvas.width/2;
@@ -515,6 +528,7 @@ function HGView(hypergraph, mousept) {
 		ontick(); 
 		simulation.alpha(2).restart();
 	} 
+	
 	function mk_simulation() {
 		simulation = d3.forceSimulation(nodes.concat(linknodes))
 			.force("charge", filtered_force(d3.forceManyBody()
@@ -544,19 +558,18 @@ function HGView(hypergraph, mousept) {
 		}
 	}
 	
-	function fresh_label(prefix="p") {
-		existing = links.map( l => l.label);
+	function next_name(prefix, suffix, existing) {
 		i = 1;
-		while(existing.includes(prefix+i)) i++;
-		return prefix+i;
+		while(existing.includes(prefix+i+suffix)) i++;
+		return prefix+i+suffix;
 	}
-	function fresh_node_name(prefix="X") {
-		// existing = N;
-		existing = nodes.map(n => n.id);
-		i = 1;
-		while(existing.includes(prefix+i)) i++;
-		return prefix+i;
-	}
+	
+	self.fresh_label = () => next_name(self.default_arc_symbol+'_{', '}', links.map(l=>l.label));
+	// self.fresh_node_name = () => next_name(self.default_node_symbol+'_{', '}', nodes.map(n => n.id));
+	self.fresh_node_name = function() {
+		 	return next_name(self.default_node_symbol+'_{', '}', nodes.map(n => n.id));
+	};
+	
 	function new_link(src, tgt, label, initial_ln_pos=[undefined,undefined]) {
 		ensure_multinode(src);
 		ensure_multinode(tgt);
@@ -595,10 +608,12 @@ function HGView(hypergraph, mousept) {
 		let nodedata = svgg.selectAll(".node").data(nodes, n => n.id);
 		let newnodeGs = nodedata.enter()
 			.append("g")
-			.classed("node", true);
+			.classed("node", true)
+			.attr("data-id", d => d.id);  // for easy selection later
 			// .call(simulation.drag);
 		newnodeGs.append("rect").classed("nodeshape", true);
-		newnodeGs.append("text");		
+		newnodeGs.append("text");		// for just text
+		// newnodeGs.append("svg");				// for svg elements
 		
 		nodedata.exit().each(remove_node)
 			.remove();
@@ -606,12 +621,41 @@ function HGView(hypergraph, mousept) {
 		nodedata = nodedata.merge(newnodeGs);
 		nodedata.classed('expanded', n => n.expanded);
 		nodedata.classed('anchored', n => n.anchored);
+			
+		nodedata.selectAll("text").text(n => n.id);
+		
+		nodedata.each(function(d) {
+			  renderMathToSVG(d.plaque).then(svg => {
+			    const g = d3.select(this); // still corresponds to d, somehow?
+
+			    // Remove old SVG and/or text labels
+			    g.select("svg").remove();
+					g.select('text').remove();
+					
+					this.appendChild(svg);  // or: g.node().appendChild(svg)
+					// const bbox = svg.getBBox();
+					// console.log('after', svg.getAttribute('x'), svg.getAttribute('y'))
+					// console.log('bbox', bbox)
+
+					// This accessor path is black magic given by chatGPT
+					[svgw,svgh] = [svg.width.baseVal.value, svg.height.baseVal.value]
+					svg.setAttribute('x', -svgw/2 );
+					svg.setAttribute('y', -svgh/2 );
+					
+					d.w = Math.max(svgw + 12, d.w);
+					d.h = Math.max(svgh + 7, d.h);
+					g.select('rect.nodeshape')
+						.attr('width', d.w)
+						.attr('height', d.h)
+						.attr('x', -d.w/2)
+						.attr('y', -d.h/2);
+			  });
+		});
+		
 		nodedata.selectAll("rect.nodeshape")
 			.attr('width', n => n.w).attr('x', n => -n.w/2)
 			.attr('height', n => n.h).attr('y', n => -n.h/2)
 			.attr('rx', 15);
-		nodedata.selectAll("text").text(n => n.plaque);
-		nodedata.filter( n => ! n.display).attr('display', 'none');
 		
 		// if (typeof simulation != 'undefined') {
 		// 	simulation.nodes(nodes.concat(linknodes));
@@ -835,7 +879,7 @@ function HGView(hypergraph, mousept) {
 				remove_link(pickl);
 			} else {
 				// create new edge (Or abandon?)
-				pickobj = new_node(fresh_node_name(), endpt.x, endpt.y);
+				pickobj = new_node(self.fresh_node_name(), endpt.x, endpt.y);
 				if(!newtgts.includes(pickobj.id)) newtgts.push(pickobj.id);
 				
 				
@@ -859,12 +903,12 @@ function HGView(hypergraph, mousept) {
 
 		// let newtgts = [pickobj.id] // do I maybe want to do this at end?
 		newsrcs.push(... temp_link.srcs.filter( n => !newsrcs.includes(n)));
-		new_link(newsrcs, newtgts, fresh_label(), [temp_link.x, temp_link.y]);
+		new_link(newsrcs, newtgts, self.fresh_label(), [temp_link.x, temp_link.y]);
 		simulation.alpha(0.5).alphaTarget(0).restart();
 		
 		ontick();	
 	}
-	function rename_node(old_name, new_name) {
+	function rename_node(old_name, new_name, new_plaque=undefined) {
 		obj = lookup[old_name];
 		let replacer = nid => (nid == obj.id) ? new_name : nid;
 		//TODO this will leave parentLinks in the dust...
@@ -876,6 +920,8 @@ function HGView(hypergraph, mousept) {
 		}
 		delete lookup[obj.id];
 		obj.id = new_name;
+		// we also need to update plaque I guess
+		obj.plaque = new_plaque || new_name;
 		lookup[new_name] = obj;
 		align_node_dom();
 	}	
@@ -913,7 +959,9 @@ function HGView(hypergraph, mousept) {
 	
 	mk_simulation();
 	
-	return {
+	// return {
+	// Object.assign(self, {
+	 Object.defineProperties(self, Object.getOwnPropertyDescriptors({
 		sim : simulation,
 		load : load,
 		tick : ontick,
@@ -963,6 +1011,9 @@ function HGView(hypergraph, mousept) {
 		repaint_via : function(redraw) {
 			repaint = redraw
 		},
-		align_node_dom : align_node_dom
-	}
+		align_node_dom : align_node_dom,
+		// ...self
+	// }
+	}));
+	return self;
 }
